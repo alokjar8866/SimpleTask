@@ -41,6 +41,7 @@ app.get("/about", (req, res) => {
     "my features": {
       "Rate Limiting": "Protects the API from abuse by limiting each IP to 500 requests per 15 minutes.Used 500 for automated testing request",
       "Ownership": "Only the note owner can update, delete, or share their notes. Shared users get read-only access as i have given limited access",
+      "Pagination":"Implemented the pagination feature so that data is fetched in required order if default it returns full content",
       "Search (extended feature)":"It helps to search the content using the keywords send in query params",
       "Pin Note":"In this feature suppose we have bunch of notes and want few notes to pin we can use this endpoint it returns the on top in array regardless when it is craeted"
     },
