@@ -50,7 +50,7 @@ app.get("/about", (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, async () => {
+app.listen(Number(PORT), async () => {
   await connectDB();
   console.log(`Server running on port ${PORT}`);
 });
