@@ -1,6 +1,16 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 
-const NotesSchema = new mongoose.Schema(
+export interface INote extends Document {
+    title: string;
+    content: string;
+    owner: Types.ObjectId;
+    sharedWith: Types.ObjectId[];
+    isPinned: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+const NotesSchema = new mongoose.Schema<INote>(
     {
         title: {
             type: String,
@@ -23,10 +33,16 @@ const NotesSchema = new mongoose.Schema(
                 ref: "User",
             },
         ],
+        isPinned: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         timestamps: true
     }
 )
 
-const NoteModel = mongoose.model("Note",NotesSchema)
+NotesSchema.index({ title: "text", content: "text" });
+
+export const NoteModel = mongoose.model<INote>("Note", NotesSchema)
