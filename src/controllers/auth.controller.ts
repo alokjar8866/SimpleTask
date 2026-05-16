@@ -47,7 +47,8 @@ export const login: RequestHandler = async (req, res) => {
         }
 
         const access_token = jwt.sign({
-        id: user._id
+        id: user._id,
+        email:user.email
     }, JWTSecret,{
         expiresIn: "7d",
     });
