@@ -2,52 +2,72 @@ import type { RequestHandler } from "express";
 import { NoteModel } from "../models/notes.model.js"
 import { UserModel } from "../models/user.model.js";
 
-export const getAllNotes: RequestHandler = async (req, res) => {
+export const getAllNotes: RequestHandler = async (req, res) => { //v2 of getAllNotes
   try {
     const userId = req.user!._id;
-
-    const notes = await NoteModel.find({
-      $or: [{ owner: userId }, { sharedWith: userId }],
-    }).sort({ isPinned: -1, updatedAt: -1 });;
-
+ 
+    // ==============Pagination-extended-feature======================================
+    const page  = Math.max(1, parseInt(req.query.page  as string) || 1);
+    const limit = Math.min(50, parseInt(req.query.limit as string) || 10);
+    const skip  = (page - 1) * limit;
+ 
+    const filter = { $or: [{ owner: userId }, { sharedWith: userId }] };
+ 
+    const [notes, total] = await Promise.all([
+      NoteModel.find(filter)
+        .sort({ isPinned: -1, updatedAt: -1 }) // pinned notes always on top
+        .skip(skip)
+        .limit(limit),
+      NoteModel.countDocuments(filter),
+    ]);
+ 
     const formatted = notes.map((note) => ({
-      id: note._id,
-      title: note.title,
-      content: note.content,
-      isPinned: note.isPinned,
+      id:         note._id,
+      title:      note.title,
+      content:    note.content,
+      isPinned:   note.isPinned,
       created_at: note.createdAt,
       updated_at: note.updatedAt,
     }));
-
-    return res.status(200).json(formatted);
+ 
+    return res.status(200).json({
+      data: formatted,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
 
+
 export const getNoteById: RequestHandler = async (req, res) => {
   try {
     const userId = req.user!._id;
     const { id } = req.params;
-
+ 
     const note = await NoteModel.findById(id);
-
+ 
     if (!note) {
       return res.status(404).json({ message: "Note not found" });
     }
-
-    const isOwner = note.owner.toString() === userId.toString();
+ 
+    const isOwner  = note.owner.toString() === userId.toString();
     const isShared = note.sharedWith.map((u) => u.toString()).includes(userId.toString());
-
+ 
     if (!isOwner && !isShared) {
       return res.status(403).json({ message: "You do not have access to this note" });
     }
-
+ 
     return res.status(200).json({
-      id: note._id,
-      title: note.title,
-      content: note.content,
-      isPinned: note.isPinned,
+      id:         note._id,
+      title:      note.title,
+      content:    note.content,
+      isPinned:   note.isPinned,
       created_at: note.createdAt,
       updated_at: note.updatedAt,
     });
