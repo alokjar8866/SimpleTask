@@ -143,3 +143,48 @@ export const deleteNote: RequestHandler = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+/*========================Share Notes======================================*/
+export const shareNote: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.user!._id;
+    const { id } = req.params;
+    const { share_with_email } = req.body;
+
+    if (!share_with_email) {
+      return res.status(400).json({ message: "share_with_email is required" });
+    }
+
+    const note = await NoteModel.findById(id);
+    if (!note) {
+      return res.status(404).json({ message: "Note not found" });
+    }
+
+
+    if (note.owner.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "You are not allowed to share this note" });
+    }
+
+    const targetUser = await UserModel.findOne({ email: share_with_email });
+    if (!targetUser) {
+      return res.status(404).json({ message: "No user found with that email" });
+    }
+
+    if (targetUser._id.toString() === userId.toString()) {
+      return res.status(400).json({ message: "You cannot share a note with yourself" });
+    }
+
+    const alreadyShared = note.sharedWith.map((u) => u.toString()).includes(targetUser._id.toString());
+    if (alreadyShared) {
+      return res.status(409).json({ message: "Note is already shared with this user" });
+    }
+
+    note.sharedWith.push(targetUser._id);
+    await note.save();
+
+    return res.status(200).json({ message: "Note shared successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
