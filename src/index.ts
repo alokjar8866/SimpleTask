@@ -21,7 +21,7 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-connectDB();
+//connectDB();
 
 app.get("/home",function(req,res){
     res.json({
@@ -48,7 +48,9 @@ app.get("/about", (req, res) => {
   });
 });
 
-const PORT = process.env.PORT;
-app.listen(PORT, ()=>{
-     console.log(`Server running on port ${PORT}`)
-})
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, async () => {
+  await connectDB();
+  console.log(`Server running on port ${PORT}`);
+});

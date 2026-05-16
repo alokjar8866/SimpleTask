@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+/* import mongoose from "mongoose";
 
 const dburl = process.env.MONGODB_URL;
 if(!dburl){
@@ -14,5 +14,19 @@ function connectDB(){
         console.log("MongoDB connection Failed",err);
     })
 }
+
+export default connectDB; */
+
+import mongoose from "mongoose";
+
+const connectDB = async (): Promise<void> => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URL as string);
+    console.log("MongoDB connected successfully!!!");
+  } catch (error) {
+    console.error("MongoDB connection error:", error);
+    process.exit(1);
+  }
+};
 
 export default connectDB;
